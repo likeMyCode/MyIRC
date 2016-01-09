@@ -1,0 +1,2 @@
+# myIRC
+[SK] Semestr V
