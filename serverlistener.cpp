@@ -2,12 +2,16 @@
 #include "mainwindow.h"
 
 #include <QString>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <unistd.h>
-#include <arpa/inet.h>
+
+#ifdef _WIN32
+    #include <winsock2.h>
+#else
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+#endif
 
 
 //-------------------------------
@@ -97,3 +101,9 @@ void ServerListener::run() {
         parseMessage(finalMessage);
     }
 }
+
+
+
+
+
+
