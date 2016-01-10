@@ -2,11 +2,15 @@
 #include "ui_signin.h"
 #include "mainwindow.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+#ifdef _WIN32
+    #include <winsock2.h>
+#else
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <unistd.h>
+    #include <arpa/inet.h>
+#endif
 
 
 //-------------------------------
@@ -20,7 +24,12 @@
  *
  */
 SignIn::SignIn(QWidget *parent) : QWidget(parent), ui(new Ui::SignIn) {
-
+    #ifdef _WIN32
+        WSADATA wsaData;
+        int result = WSAStartup( MAKEWORD( 2, 2 ), & wsaData );
+        if( result != NO_ERROR )
+             printf( "Initialization error.\n" );
+    #endif
     ui->setupUi(this);
     ui->connectionLabel->setVisible(false);
 }
@@ -137,10 +146,14 @@ bool SignIn::tryConnect() {
     memset(&sckAddr, 0, sizeof sckAddr);
 
     sckAddr.sin_family = AF_INET;
-    inet_aton(server, &sckAddr.sin_addr);
+
+    #ifdef linux
+        inet_aton(server, &sckAddr.sin_addr);
+    #endif
+
     sckAddr.sin_port = htons(service_port);
 
-    // Próba utworzenia gniazda
+    // Próba tworzenia gniazda
     if ((sck = socket (PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
         perror ("Nie można utworzyć gniazdka");
         return false;
@@ -161,7 +174,7 @@ bool SignIn::tryConnect() {
         return false;
     }
 
-    // Ukrycie okna łączenia do serwera
+   // Ukrycie okna łączenia do serwera
     this->hide();
 
     // Utworzenie głównego okna czatu
