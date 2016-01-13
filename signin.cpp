@@ -145,12 +145,12 @@ bool SignIn::tryConnect() {
     // Wyczyszczenie struktury adresowej
     memset(&sckAddr, 0, sizeof sckAddr);
 
-    sckAddr.sin_family = AF_INET;
-
-    #ifdef linux
+    #ifdef _WIN32
+        sckAddr.sin_addr.s_addr = inet_addr(server);
+    #else
         inet_aton(server, &sckAddr.sin_addr);
     #endif
-
+    sckAddr.sin_family = AF_INET;
     sckAddr.sin_port = htons(service_port);
 
     // Próba tworzenia gniazda
