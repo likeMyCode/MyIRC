@@ -5,13 +5,17 @@
 #include <QTextBlock>
 #include <QStringListModel>
 #include <QTime>
-#include <iostream>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+#ifdef _WIN32
+    #include <winsock2.h>
+#else
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <unistd.h>
+    #include <arpa/inet.h>
+#endif
+
 
 //--------------------------------------
 
@@ -321,3 +325,4 @@ void MainWindow::on_chatRoomsList_doubleClicked(const QModelIndex &index) {
     // Wysłanie wiadomości do serwera o wybraniu nowego pokoju czatu
     sendMessageToServer("3", index.data(Qt::DisplayRole).toString());
 }
+
