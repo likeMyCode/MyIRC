@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
-CONFIG += c++11
+CONFIG += network c++11
 QMAKE_CXXFLAGS += -std=c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -13,15 +13,19 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = IRC
 TEMPLATE = app
 
+LIBS += -lwsock32
 
 SOURCES += main.cpp\
         mainwindow.cpp \
     signin.cpp \
-    serverlistener.cpp
+    serverlistener.cpp \
+    privatechat.cpp
 
 HEADERS  += mainwindow.h \
     signin.h \
-    serverlistener.h
+    serverlistener.h \
+    privatechat.h
 
 FORMS    += mainwindow.ui \
-    signin.ui
+    signin.ui \
+    privatechat.ui
