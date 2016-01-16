@@ -14,6 +14,7 @@
 #endif
 
 
+
 //-------------------------------
 
 /** Konstruktor klasy ServerListener (nasłuchiwanie serwera):
@@ -49,6 +50,10 @@ void ServerListener::parseMessage(QString message) {
 
         // Odświeżenie listy pokojów czatu
         QMetaObject::invokeMethod(window, "refreshChatRooms", Qt::AutoConnection, Q_ARG(QString, message.section(";", 1, -1)));
+    } else if (message.section(";", 0, 0) == "4") {
+
+        // Dodanie otrzymanej wiadomosci do okna prywatnego czatu
+        QMetaObject::invokeMethod(window, "appendPrivateChat", Qt::AutoConnection, Q_ARG(QString, message.section(";", 1, -1)));
     }
 }
 
@@ -92,7 +97,7 @@ void ServerListener::run() {
         memset(&server_reply, 0, 1024);
 
         // Pobieramy wiadomość o takim rozmiarze jaki został przesłany w wiadomości wcześniej
-        recv(serverSocket, server_reply, messageSize.toInt(&ok, 10) - 1, 0);
+        recv(serverSocket, server_reply, messageSize.toInt(&ok, 10) - 1, 0); std::cout << server_reply << std::endl;
 
         // Dopisujemy pobraną wiadomość do wiadomości końcowej
         finalMessage += server_reply;
@@ -101,9 +106,3 @@ void ServerListener::run() {
         parseMessage(finalMessage);
     }
 }
-
-
-
-
-
-
