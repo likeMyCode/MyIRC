@@ -7,6 +7,7 @@
 #include <time.h>
 #include <sstream>
 #include <unistd.h>
+#include <iostream>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -254,6 +255,36 @@ void prepareChatMessage(int sck, string clientName, string color, string message
 }
 
 
+void preparePrivateChatMessage(int sck, string username, string clientName, string color, string message) {
+
+    bool showTime = true;
+    string finalMessage;
+
+    // Czy chcemy wyświetlać godzinę na czacie?
+    if (showTime) {
+        time_t rawtime;
+        time (&rawtime);
+        struct tm *time_info = localtime(&rawtime);
+        string minutes, hour;
+
+        // Sprawdzenie czy otrzymana wartość minuty nie jest z przedziału <1;6> jeżeli jest to dopisanie "0" przed minutą
+        if (time_info->tm_min / 10 == 0) minutes = "0" + intToStr(time_info->tm_min);
+        else minutes = intToStr(time_info->tm_min);
+
+         // Sprawdzenie czy otrzymana wartość godziny nie jest z przedziału <1;6> jeżeli jest to dopisanie "0" przed godziną
+        if (time_info->tm_hour / 10 == 0) hour = "0" + intToStr(time_info->tm_hour);
+        else hour = intToStr(time_info->tm_hour);
+
+
+        string time = hour + ":" + minutes;
+        finalMessage = ";" + username + ";<html><p><font color=\"Silver\">" + time + "</font> <b><font color=\"" + color + "\">" + clientName + "</b></font>: " + message + "</p></html>";
+    } else
+        finalMessage = ";" + username + ";<html><p><b><font color=\"" + color + "\">" + clientName + "</b></font>: " + message + "</html>";
+
+    // Przesłanie wiadomości do klienta
+    sendMessageToClient(sck, "4", finalMessage);
+}
+
 
 /** Funkcja wywoływana gdy otrzymano przyszła nowa wiadomość na czacie
  *
@@ -272,10 +303,44 @@ void chatMessageReceived(int sck, string message) {
 
             // Przesłanie do wszystkich innych klientów w tym pokoju tej wiadomości
             for (list <client>::iterator rest = clients.begin(); rest != clients.end(); ++rest) {
-                if (rest->chatRoom == clientChatRoom) {
+                if (rest->chatRoom == clientChatRoom) 
                     prepareChatMessage(rest->sck, clientName, clientColor, message);
-                    cout << rest->sck << " " << rest->color << endl;
-                }
+                
+            }
+
+            break;
+        }
+    }
+}
+
+
+void privateChatMessageReceived(int sck, string message) {
+
+    string delimiter = ";";
+    string username;
+    size_t pos = 0;
+
+    // Sprawdzenie jaki typ wiadomości został wysłany
+    	pos = message.find(delimiter);
+        username = message.substr(0, pos);
+        message.erase(0, pos + delimiter.length());
+    
+
+    // Znalezienie klienta, który przesyła wiadomość
+    for (list <client>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (sck == it->sck) {
+            string clientChatRoom = it->chatRoom;
+            string clientName = it->name;
+            string clientColor = it->color;
+
+            // Przesłanie do wszystkich innych klientów w tym pokoju tej wiadomości
+            for (list <client>::iterator rest = clients.begin(); rest != clients.end(); ++rest) {
+                if (rest->name == username) {
+		std::cout << rest->name << " " << username << std::endl;
+                    preparePrivateChatMessage(rest->sck, clientName, clientName, clientColor, message);
+		    preparePrivateChatMessage(sck, rest->name, clientName, clientColor, message);
+			break;
+		}   
             }
 
             break;
@@ -299,19 +364,22 @@ void handleReceivedMessage(int sck, char *buffer) {
     size_t pos = 0;
 
     // Sprawdzenie jaki typ wiadomości został wysłany
-    while ((pos = message.find(delimiter)) != string::npos) {
-        token = message.substr(0, pos);
-        message.erase(0, pos + delimiter.length());
+    pos = message.find(delimiter);
+    token = message.substr(0, pos);
+    message.erase(0, pos + delimiter.length());
+    
 
-        if (token == "0")
-            prepareClient(sck, message);
-        else if (token == "1")
-            chatMessageReceived(sck, message);
-        else if (token == "2")
-            ; // TODO możliwe usuwanie użytkownika z czatu
-        else if (token == "3")
-            changeChatRoom(sck, message);
-    }
+	std::cout << message << std::endl;
+
+	if (token == "0")
+	    prepareClient(sck, message);
+	else if (token == "1")
+	    chatMessageReceived(sck, message);
+	else if (token == "2")
+	    privateChatMessageReceived(sck, message);
+	else if (token == "3")
+	    changeChatRoom(sck, message);
+    
 }
 
 
