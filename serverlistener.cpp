@@ -97,7 +97,7 @@ void ServerListener::run() {
         memset(&server_reply, 0, 1024);
 
         // Pobieramy wiadomość o takim rozmiarze jaki został przesłany w wiadomości wcześniej
-        recv(serverSocket, server_reply, messageSize.toInt(&ok, 10) - 1, 0); std::cout << server_reply << std::endl;
+        recv(serverSocket, server_reply, messageSize.toInt(&ok, 10) - 1, 0); 
 
         // Dopisujemy pobraną wiadomość do wiadomości końcowej
         finalMessage += server_reply;
