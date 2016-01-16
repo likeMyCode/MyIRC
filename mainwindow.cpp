@@ -5,17 +5,13 @@
 #include <QTextBlock>
 #include <QStringListModel>
 #include <QTime>
+#include <iostream>
 
-#ifdef _WIN32
-    #include <winsock2.h>
-#else
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <unistd.h>
-    #include <arpa/inet.h>
-#endif
-
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
 //--------------------------------------
 
@@ -27,8 +23,9 @@
  * @param *parent Wskaźnik na obiekt z klasy wyższego rzędu, opisuje kto jest rodzicem obiektu z klasy MainWindow
  *
  */
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent, QString username) : QMainWindow(parent), ui(new Ui::MainWindow) {
 
+    this->username = username;
     ui->setupUi(this);
 }
 
@@ -161,6 +158,32 @@ void MainWindow::appendChat(QString newMessage) {
 
 
 
+
+void MainWindow::appendPrivateChat (QString newMessage) {
+
+    QString username = newMessage.section(separator, 0, 0);
+    QString message = newMessage.section(separator, 1, 1);
+
+    foreach (PrivateChat* privateChat, privateChatsVector) {
+        if (privateChat->getUsername() == username) {
+            privateChat->appendChat(message);
+            return;
+        }
+    }
+
+    this->openNewPrivateChat(username);
+
+    foreach (PrivateChat* privateChat, privateChatsVector) {
+        if (privateChat->getUsername() == username) {
+            privateChat->appendChat(message);
+            break;
+        }
+    }
+}
+
+
+
+
 /** Funkcja wykorzystywana do przesyłania danych do serwera:
  *
  * Wywołując tę funkcję wysyłamy wiadomość o określonym typie
@@ -225,6 +248,19 @@ void MainWindow::setLineSpacing(int lineSpacing) {
 }
 
 
+
+
+
+void MainWindow::openNewPrivateChat(QString username) {
+
+    PrivateChat* newPrivateChat = new PrivateChat(0, username, serverSocket);
+    this->privateChatsVector.append(newPrivateChat);
+
+    newPrivateChat->show();
+    newPrivateChat->setWindowTitle("Private Chat /" + username);
+}
+
+
 //----------- OBSŁUGA SYGNAŁÓW ------------
 
 
@@ -262,8 +298,8 @@ void MainWindow::on_sendMessageButton_clicked() {
  */
 void MainWindow::on_usersList_doubleClicked(const QModelIndex &index) {
 
-    // Wysłanie wiadomości do serwera z odpowiednio wybranym użytkownikiem
-    sendMessageToServer("2", index.data(Qt::DisplayRole).toString());
+    if (index.data(Qt::DisplayRole).toString() != this->username)
+        openNewPrivateChat(index.data(Qt::DisplayRole).toString());
 }
 
 
@@ -285,6 +321,3 @@ void MainWindow::on_chatRoomsList_doubleClicked(const QModelIndex &index) {
     // Wysłanie wiadomości do serwera o wybraniu nowego pokoju czatu
     sendMessageToServer("3", index.data(Qt::DisplayRole).toString());
 }
-
-
-
