@@ -20,6 +20,7 @@ private slots:
     void on_portEdit_returnPressed();
     void on_usernameEdit_returnPressed();
     void on_startChatButton_clicked();
+    void on_passwordEdit_returnPressed();
 
 private:
     Ui::SignIn *ui;
