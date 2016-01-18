@@ -1,6 +1,7 @@
 #include "signin.h"
 #include "ui_signin.h"
 #include "mainwindow.h"
+#include <iostream>
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -32,6 +33,7 @@ SignIn::SignIn(QWidget *parent) : QWidget(parent), ui(new Ui::SignIn) {
     #endif
     ui->setupUi(this);
     ui->connectionLabel->setVisible(false);
+    ui->passwordEdit->setEchoMode(QLineEdit::Password);
 }
 
 
@@ -125,6 +127,13 @@ bool checkUsernameFormat(QString username) {
 }
 
 
+bool checkPasswordFormat(QString password) {
+    if (password.length() < 5) return false;
+
+    return true;
+}
+
+
 
 /** Funkcja próbująca nawiązać połączenie z serwerem:
  *
@@ -156,12 +165,33 @@ bool SignIn::tryConnect() {
     // Próba tworzenia gniazda
     if ((sck = socket (PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
         perror ("Nie można utworzyć gniazdka");
+        ui->connectionLabel->setText("Socket Inavailable");
         return false;
     }
 
     // Próba nawiązania połączenia
     if (::connect (sck, (struct sockaddr*) &sckAddr, sizeof sckAddr) < 0) {
         perror ("Brak połączenia");
+        ui->connectionLabel->setText("Connection failed");
+        return false;
+    }
+
+    QString checkPassword = "9;" + ui->usernameEdit->text() + ";" + ui->passwordEdit->text();
+
+    if (send(sck, checkPassword.toUtf8().constData(), checkPassword.length(), 0) < 0) {
+        perror ("Błąd przesłania wiadomości");
+        ui->connectionLabel->setText("Server not responding");
+        return false;
+    }
+
+    char server_reply[5];
+    memset(&server_reply, 0, 5);
+    recv(sck, server_reply, 1, 0);
+
+    std:: cout << server_reply << std::cout;
+
+    if (QString::fromUtf8(server_reply) != "1") {
+        ui->connectionLabel->setText("Wrong login or password");
         return false;
     }
 
@@ -170,6 +200,7 @@ bool SignIn::tryConnect() {
 
     // Próba wysłania pierwszej wiadomości do serwera
     if(send(sck, firstMessage.toUtf8().constData() , firstMessage.toUtf8().length(), 0) < 0) {
+        ui->connectionLabel->setText("Server not responding");
         perror ("Błąd przesłania wiadomości");
         return false;
     }
@@ -224,6 +255,13 @@ void SignIn::enterChat() {
         noError = false;
     } else {
         ui->usernameEdit->setStyleSheet("background-color: rgb(255, 255, 255);border: 1px solid #AAAAAA");
+    }
+
+    if (!checkPasswordFormat(ui->passwordEdit->text())) {
+        ui->passwordEdit->setStyleSheet("background-color: rgb(255, 255, 255);border: 1px solid #FF0000");
+        noError = false;
+    } else {
+        ui->passwordEdit->setStyleSheet("background-color: rgb(255, 255, 255);border: 1px solid #AAAAAA");
     }
 
     // Jeżeli nie było żadnych błędów próba nawiązania połączenia
@@ -298,6 +336,12 @@ void SignIn::on_usernameEdit_returnPressed() {
  *
  */
 void SignIn::on_startChatButton_clicked() {
+
+    // Próba nawiązania połączenia
+    enterChat();
+}
+
+void SignIn::on_passwordEdit_returnPressed() {
 
     // Próba nawiązania połączenia
     enterChat();
