@@ -8,6 +8,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -43,7 +44,7 @@ string colorsList[] = { "DeepPink", "DodgerBlue", "DarkTurquoise", "ForestGreen"
                         "Sienna", "SaddleBrown", "SteelBLue", "Teal", "Tomato" };
 
 string chatRooms[] = { "Main Chat", "Book Lovers", "Music Fun", "Game Talk",
-                       "Random Stuff", "YMCA" };
+                       "Random Stuff", "Home Alone", "Chatters", "League of Legends" };
 
 //-----------------------
 
@@ -146,6 +147,70 @@ void changeChatRoom(int sck, string chatName) {
             break;
         }
     }
+}
+
+bool goodData(string username, string password) {
+
+	fstream plik;
+	string passwordFile;
+	plik.open("user_data.txt");
+
+	if (plik.good(), ios::out) {
+
+		while (!plik.eof()) {
+		    getline(plik, passwordFile);
+		    string delimiter = ";";
+    		    string usernameFile;
+    		    size_t pos = 0;
+
+    
+    		    pos = passwordFile.find(delimiter);
+        	    usernameFile = passwordFile.substr(0, pos);
+        	    passwordFile.erase(0, pos + delimiter.length());
+
+
+		    cout << endl << username << ":" << password << "   " << usernameFile << ":" << passwordFile << endl;
+		    if (usernameFile == username && passwordFile == password) {
+		        for (list<client>::iterator it = clients.begin(); it != clients.end(); ++it) 
+			    if (it->name == username) return false;
+			
+			return true;
+		    }
+		}
+
+		plik.close();
+	}		
+
+	return false;
+}
+
+void checkPassword(int sck, string password) {
+	
+    string delimiter = ";";
+    string username;
+    size_t pos = 0;
+
+    // Sprawdzenie jaki typ wiadomości został wysłany
+    	pos = password.find(delimiter);
+        username = password.substr(0, pos);
+        password.erase(0, pos + delimiter.length());
+    
+	if (goodData(username, password)) {
+	    send (sck, "1", 1, 0);
+	} else {
+	    send (sck, "0", 1, 0);
+  	 
+   	    close (sck);
+    	    pthread_mutex_lock (&sock_mutex);
+
+		    // Zwolnienie gniazda
+	    for (int i = 0; i < CON_LIMIT; i++)
+		if (cln_sockets [i] == sck) {
+		    cln_sockets [i] = 0;
+		    break;
+		}
+    		pthread_mutex_unlock (&sock_mutex);
+	}
 }
 
 
@@ -379,7 +444,8 @@ void handleReceivedMessage(int sck, char *buffer) {
 	    privateChatMessageReceived(sck, message);
 	else if (token == "3")
 	    changeChatRoom(sck, message);
-    
+	else if (token == "9")
+	    checkPassword(sck, message);
 }
 
 
@@ -516,4 +582,3 @@ int main (int argc, char** argv) {
 
         return EXIT_SUCCESS;
 }
-
