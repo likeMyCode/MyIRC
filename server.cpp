@@ -234,7 +234,7 @@ void prepareClient(int sck, string name) {
     changeChatRoom(sck, "Main Chat");
 
     string chatRoomsList = "";
-    for (int i = 0; i < sizeof(chatRooms) / sizeof(chatRooms[0]); i++) {
+    for (int i = 0; i < (int)(sizeof(chatRooms) / sizeof(chatRooms[0])); i++) {
             chatRoomsList += ";" + chatRooms[i];
     }
 
@@ -473,6 +473,8 @@ void* client_loop (void* arg) {
 
     // Jeżeli klient opuści serwer wywoływana jest funkcja czyszcząca dane związane z klientem
     clientLeft(sck);
+
+    return NULL;
 }
 
 
