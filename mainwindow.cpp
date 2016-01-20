@@ -162,7 +162,18 @@ void MainWindow::appendChat(QString newMessage) {
 
 
 
-
+/*** Funkcja dodajaca nowa wiadomosc do czatu prywatnego
+ * 
+ * Wywolywana gdy serwer przesle nowa wiadomosc 
+ * ktora jest wiadomosca prywatna od innego uzytkownika.
+ * 
+ * Jezeli okno rozmowy nie bylo dotychczas otwarte
+ * to zostanie ono otwarte, aby poinformowac nas
+ * ze drugi uzytkownk chce przeprowadzic z nami prywatna rozmowe
+ * 
+ * @param newMessage Nowa wiadomość, która zostanie dopisana do okna prywatnego czatu
+ *
+ */
 void MainWindow::appendPrivateChat (QString newMessage) {
 
     QString username = newMessage.section(separator, 0, 0);
@@ -175,6 +186,7 @@ void MainWindow::appendPrivateChat (QString newMessage) {
         }
     }
 
+    // Jezeli okno nie zostalo jeszcze utworzone to tworzymy nowe.
     this->openNewPrivateChat(username);
 
     foreach (PrivateChat* privateChat, privateChatsVector) {
@@ -184,7 +196,6 @@ void MainWindow::appendPrivateChat (QString newMessage) {
         }
     }
 }
-
 
 
 
@@ -253,8 +264,15 @@ void MainWindow::setLineSpacing(int lineSpacing) {
 
 
 
-
-
+/*** Funkcja otwierajaca nowe okno prywatnej rozmowy
+ * 
+ * Wywolywana gdy chcemy utworzyc nowe okno, lub
+ * gdy inny uzytkownik, ktory do nas jeszcze nie pisal
+ * wysle do nas wiadomosc prywatna.
+ * 
+ * @param username Nazwa uzytkownika z ktorym bedziemy rozmawiac.
+ * 
+ */
 void MainWindow::openNewPrivateChat(QString username) {
 
     PrivateChat* newPrivateChat = new PrivateChat(0, username, serverSocket);
