@@ -149,6 +149,19 @@ void changeChatRoom(int sck, string chatName) {
     }
 }
 
+
+
+/*** Funkcja sprawdzajaca dane potrzebne przy logowaniu
+ * 
+ * Sprawdza czy przeslane przez uzytkownika dane do logowania
+ * sa prawidlowe czy nie.
+ * 
+ * @param username Nazwa uzytkownika
+ * @param password Haslo do konta
+ * 
+ * @return Prawda gdy istnieje taki uzytkownik w bazie, Falsz w przeciwnym wypadku
+ * 
+ */
 bool goodData(string username, string password) {
 
 	fstream plik;
@@ -184,6 +197,19 @@ bool goodData(string username, string password) {
 	return false;
 }
 
+
+
+/*** Funkcja odpowiadajaca za procedure sprawdzenie poprawnosci hasla
+ * 
+ * Bada czy uzytkownik ktory chce sie przylaczyc do czatu podal
+ * prawidlowe dane logowania. Jezeli tak to jest przesylana do niego
+ * wiadomosc o poprawnym zalogowaniu. W przeciwnym wypadku jego gniazdo 
+ * jest odlaczane od serwera, a uzytkownik dostaje wiadomosc o niepowodzeniu
+ * i nastepuje zamkniecie polaczenia z serwerem.
+ * 
+ * @param sck Gniazdo do komunikacji
+ * @param password Haslo do konta
+ */
 void checkPassword(int sck, string password) {
 	
     string delimiter = ";";
@@ -241,6 +267,7 @@ void prepareClient(int sck, string name) {
     // Przesłanie listy dostępnych czatów
     sendMessageToClient(sck, "3", chatRoomsList);
 }
+
 
 
 /** Funkcja wywoływana gdy klient opuścił czat
@@ -320,6 +347,16 @@ void prepareChatMessage(int sck, string clientName, string color, string message
 }
 
 
+
+/** Funkcja przygotowujaca prywatna wiadomosc do wysylki
+ * 
+ * @param sck Gniazdo do komunikacji
+ * @param username Nazwa uzytkownka
+ * @param clientName Nazwa uzytkownka z ktorym sie komunikujemy
+ * @param color Kolor uzytkownika
+ * @param message Wiadomosc ktora chcemy przeslac
+ * 
+ */
 void preparePrivateChatMessage(int sck, string username, string clientName, string color, string message) {
 
     bool showTime = true;
@@ -351,6 +388,7 @@ void preparePrivateChatMessage(int sck, string username, string clientName, stri
 }
 
 
+
 /** Funkcja wywoływana gdy otrzymano przyszła nowa wiadomość na czacie
  *
  * @param sck Gniazdo klienta, który przesłał wiadomość czatu
@@ -379,6 +417,13 @@ void chatMessageReceived(int sck, string message) {
 }
 
 
+
+/** Funkcja obslugujaca przychodzaca wiadomosc od innego uzytkownika do serwera
+ * 
+ * @param sck Gniazdo do komunikacji
+ * @param message Tresc wiadomosci
+ * 
+ */
 void privateChatMessageReceived(int sck, string message) {
 
     string delimiter = ";";
@@ -447,6 +492,7 @@ void handleReceivedMessage(int sck, char *buffer) {
 	else if (token == "9")
 	    checkPassword(sck, message);
 }
+
 
 
 /** Główna pętla klienta na serwerze, w której nasłuchuje on wiadomości od siebie (klienta)
