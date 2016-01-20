@@ -3,3 +3,10 @@ Kasia;kasia123
 Andrzej;andrzej123
 Janina;Janina123
 mariola;m@riola421
+sarkoz;sarkoz44
+neverMe;k@02kaxD
+justTest;okTestme
+user12P;password123
+whoAreMe;idontknow
+Krzysztof Krawczyk;krawczyk123
+Working Man;workingNow
