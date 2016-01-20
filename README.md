@@ -1,4 +1,6 @@
 # myIRC
 [SK] Semestr V
 
-To run this program you need to compile it in Linux.
+This is my passing project for Computer Networks classes.
+
+Server runs on Linux only, but client can work both on Windows and Linux.
